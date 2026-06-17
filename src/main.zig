@@ -1,71 +1,69 @@
-const std = @import("std");
-const Io = std.Io;
+const rl = @import("raylib");
 
-const phyzigs_engine = @import("phyzigs_engine");
+pub fn main() anyerror!void {
+    // Initialization
+    //--------------------------------------------------------------------------------------
+    const screenWidth = 800;
+    const screenHeight = 450;
 
-pub fn main(init: std.process.Init) !void {
-    // Prints to stderr, unbuffered, ignoring potential errors.
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    rl.initWindow(screenWidth, screenHeight, "raylib-zig [shapes] example - bouncing ball");
+    defer rl.closeWindow(); // Close window and OpenGL context
 
-    // This is appropriate for anything that lives as long as the process.
-    const arena: std.mem.Allocator = init.arena.allocator();
-
-    // Accessing command line arguments:
-    const args = try init.minimal.args.toSlice(arena);
-    for (args) |arg| {
-        std.log.info("arg: {s}", .{arg});
-    }
-
-    // In order to do I/O operations need an `Io` instance.
-    const io = init.io;
-
-    // Stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    var stdout_buffer: [1024]u8 = undefined;
-    var stdout_file_writer: Io.File.Writer = .init(.stdout(), io, &stdout_buffer);
-    const stdout_writer = &stdout_file_writer.interface;
-
-    try phyzigs_engine.printAnotherMessage(stdout_writer);
-
-    try stdout_writer.flush(); // Don't forget to flush!
-}
-
-test "simple test" {
-    const gpa = std.testing.allocator;
-    var list: std.ArrayList(i32) = .empty;
-    defer list.deinit(gpa); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(gpa, 42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
-
-test "fuzz example" {
-    try std.testing.fuzz({}, testOne, .{});
-}
-
-fn testOne(context: void, smith: *std.testing.Smith) !void {
-    _ = context;
-    // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-
-    const gpa = std.testing.allocator;
-    var list: std.ArrayList(u8) = .empty;
-    defer list.deinit(gpa);
-    while (!smith.eos()) switch (smith.value(enum { add_data, dup_data })) {
-        .add_data => {
-            const slice = try list.addManyAsSlice(gpa, smith.value(u4));
-            smith.bytes(slice);
-        },
-        .dup_data => {
-            if (list.items.len == 0) continue;
-            if (list.items.len > std.math.maxInt(u32)) return error.SkipZigTest;
-            const len = smith.valueRangeAtMost(u32, 1, @min(32, list.items.len));
-            const off = smith.valueRangeAtMost(u32, 0, @intCast(list.items.len - len));
-            try list.appendSlice(gpa, list.items[off..][0..len]);
-            try std.testing.expectEqualSlices(
-                u8,
-                list.items[off..][0..len],
-                list.items[list.items.len - len ..],
-            );
-        },
+    var ballPosition: rl.Vector2 = rl.Vector2{
+        .x = @floatFromInt(@divExact(rl.getScreenWidth(), 2)),
+        .y = @floatFromInt(@divExact(rl.getScreenHeight(), 2)),
     };
+    var ballSpeed: rl.Vector2 = rl.Vector2{ .x = 5.0, .y = 4.0 };
+    const ballRadius: i32 = 20;
+
+    var pause: bool = false;
+    var framesCounter: i32 = 0;
+
+    rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
+    //--------------------------------------------------------------------------------------
+
+    // Main game loop
+    while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+        // Update
+        //----------------------------------------------------------------------------------
+        if (rl.isKeyPressed(.space)) {
+            pause = !pause;
+        }
+
+        if (!pause) {
+            ballPosition.x += ballSpeed.x;
+            ballPosition.y += ballSpeed.y;
+
+            const ballWidthEdge: f32 = @floatFromInt(rl.getScreenWidth() - ballRadius);
+            if ((ballPosition.x >= ballWidthEdge) or (ballPosition.x <= ballRadius)) {
+                ballSpeed.x = ballSpeed.x * -1.0;
+            }
+
+            const ballHeightEdge: f32 = @floatFromInt(rl.getScreenHeight() - ballRadius);
+            if ((ballPosition.y >= ballHeightEdge) or (ballPosition.y <= ballRadius)) {
+                ballSpeed.y = ballSpeed.y * -1.0;
+            }
+        } else {
+            framesCounter += 1;
+        }
+        //----------------------------------------------------------------------------------
+
+        // Draw
+        //----------------------------------------------------------------------------------
+        rl.beginDrawing();
+        defer rl.endDrawing();
+
+        rl.clearBackground(.ray_white);
+
+        rl.drawCircleV(ballPosition, ballRadius, .maroon);
+        rl.drawText("PRESS SPACE to PAUSE BALL MOVEMENT", 10, rl.getScreenHeight() - 25, 20, .light_gray);
+
+        // On pause, we draw a blinking message
+        if (pause and @mod(@divFloor(framesCounter, 30), 2) == 0) {
+            rl.drawText("PAUSED", 350, 200, 30, .gray);
+        }
+
+        rl.drawFPS(10, 10);
+        //----------------------------------------------------------------------------------
+    }
 }
