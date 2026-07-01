@@ -3,7 +3,7 @@
 This repo is a simple physics engine written in zig. In order to render, we use
 raylib bindings.
 
-![raylib_window](assets/bounce.webm)
+![raylib_window](assets/bounce.gif)
 
 ## Design
 
