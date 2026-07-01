@@ -3,15 +3,16 @@
 This repo is a simple physics engine written in zig. In order to render, we use
 raylib bindings.
 
-![raylib_window](assets/ball.png)
+![raylib_window](assets/bounce.webm)
 
 ## Design
 
 The rough design of this repo is:
 
 ```
-src/Main.zig -- main loop
-src/Engine.zig -- engine code
-src/World.zig -- representation of the world
-src/Renderer.zig -- rendering of World
+src/main.zig -- main loop
+src/engine.zig -- engine code
+src/world.zig -- representation of the world
+src/renderer.zig -- rendering of World
 ```
+
