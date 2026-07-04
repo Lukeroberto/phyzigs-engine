@@ -4,6 +4,7 @@ const rl = @import("raylib");
 const phyzigs = @import("root.zig");
 const renderer = @import("renderer.zig");
 
+
 pub fn main() anyerror!void {
     // Setup window config/screen
     const screenWidth = 800;
@@ -17,29 +18,11 @@ pub fn main() anyerror!void {
     const dt: f32 = 1.0/60.0;
 
     // Load scene
-    const p1 = phyzigs.world.Particle{
-        .pos=.{400, 225},
-        .pred_pos=.{400, 225},
-        .vel=.{0,0},
-        .inv_mass=1,
-    };
-    const p2 = phyzigs.world.Particle{
-        .pos=.{200, 100},
-        .pred_pos=.{200, 100},
-        .vel=.{20,0},
-        .inv_mass=1,
-    };
-    const p3 = phyzigs.world.Particle{
-        .pos=.{600, 50},
-        .pred_pos=.{600, 50},
-        .vel=.{0,0},
-        .inv_mass=1,
-    };
-    var particles = [_]phyzigs.world.Particle{p1, p2, p3};
-    var world = phyzigs.world.World{
-        .particles=&particles,
-        .g = .{0, 400},
-    };
+    // Avoiding allocators for now.
+    const scene_data = @import("scenes/test.zon");
+
+    var particle_buffer: [scene_data.particles.len]phyzigs.world.Particle = undefined;
+    var world = loadTestScene(scene_data, &particle_buffer);
 
 
     // Close with ESC or close button
@@ -76,4 +59,24 @@ pub fn main() anyerror!void {
         rl.drawFPS(10, 10);
         rl.endDrawing();
     }
+}
+
+fn loadTestScene(scene_data: anytype, out_particles: []phyzigs.world.Particle) phyzigs.world.World {
+    
+    // Ensure the array provided by main is exactly the right size
+    std.debug.assert(out_particles.len == scene_data.particles.len);
+
+    inline for (scene_data.particles, 0..) |p, i| {
+        out_particles[i] = phyzigs.world.Particle{
+            .pos = p.pos,
+            .pred_pos = p.pred_pos,
+            .vel = p.vel,
+            .inv_mass = p.inv_mass,
+        };
+    }
+
+    return phyzigs.world.World{
+        .g = scene_data.g,
+        .particles = out_particles,
+    };
 }
