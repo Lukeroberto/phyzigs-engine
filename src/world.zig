@@ -2,8 +2,8 @@ const std = @import("std");
 const testing = std.testing;
 
 pub const World = struct {
-    g: [2]f32 = .{0, 9.8},
-    particles: [] Particle,
+    g: [2]f32 = .{ 0, 9.8 },
+    particles: []Particle,
     //colliders: []Collider,
     //constraints: []Constraint,
 };
@@ -34,7 +34,7 @@ pub const Circle = struct {
 };
 
 pub const Rect = struct {
-    l: f32, 
+    l: f32,
     w: f32,
     pos: [2]f32,
 };

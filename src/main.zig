@@ -1,21 +1,21 @@
 const std = @import("std");
 const rl = @import("raylib");
+const rg = @import("raygui");
 
 const phyzigs = @import("root.zig");
 const renderer = @import("renderer.zig");
 
-
 pub fn main() anyerror!void {
     // Setup window config/screen
-    const screenWidth = 800;
-    const screenHeight = 450;
+    const screenWidth = 1600;
+    const screenHeight = 900;
 
     rl.initWindow(screenWidth, screenHeight, "raylib-zig [shapes] example - bouncing ball");
     defer rl.closeWindow();
 
     var pause: bool = false;
     rl.setTargetFPS(60);
-    const dt: f32 = 1.0/60.0;
+    const dt: f32 = 1.0 / 60.0;
 
     // Load scene
     // Avoiding allocators for now.
@@ -24,12 +24,15 @@ pub fn main() anyerror!void {
     var particle_buffer: [scene_data.particles.len]phyzigs.world.Particle = undefined;
     var world = loadTestScene(scene_data, &particle_buffer);
 
-
     // Close with ESC or close button
     while (!rl.windowShouldClose()) {
         if (rl.isKeyPressed(.space)) {
             pause = !pause;
         }
+
+        // Create window
+        _ = rg.windowBox(.init(85, 70, 250, 100), "Window Box");
+        // GuiLabel, TextFormat, GuiGroupBox
 
         // Step 1: Handle inputs
         // No current inputs yet
@@ -37,17 +40,15 @@ pub fn main() anyerror!void {
         // Step 2: Step Engine
         if (!pause) phyzigs.engine.step(&world, dt);
         for (world.particles, 0..world.particles.len) |particle, i| {
-            std.debug.print("pos[{}]:({}, {})\n", .{i, particle.pos[0], particle.pos[1]});
+            std.debug.print("pos[{}]:({}, {})\n", .{ i, particle.pos[0], particle.pos[1] });
         }
 
-        
         // Step 3: render scene
         rl.beginDrawing();
         rl.clearBackground(.ray_white);
-        rl.drawRectangle(0, 400, 800, 50, .black);
+        rl.drawRectangle(0, 400, screenWidth, 50, .black);
 
         renderer.drawWorld(&world);
-
 
         rl.drawText("Press SPACE to PAUSE Simulation", 10, rl.getScreenHeight() - 25, 20, .light_gray);
 
@@ -62,7 +63,7 @@ pub fn main() anyerror!void {
 }
 
 fn loadTestScene(scene_data: anytype, out_particles: []phyzigs.world.Particle) phyzigs.world.World {
-    
+
     // Ensure the array provided by main is exactly the right size
     std.debug.assert(out_particles.len == scene_data.particles.len);
 

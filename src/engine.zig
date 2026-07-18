@@ -12,13 +12,13 @@ pub fn step(world: *world_module.World, dt: f32) void {
 
         particle.pred_pos = pos + vel * @as(Vec2, @splat(dt)) + g * @as(Vec2, @splat(0.5 * dt)) * @as(Vec2, @splat(dt));
     }
-    
+
     // 2. Resolve Constraints
     // HARDCODED floor
     for (world.particles) |*particle| {
         if (particle.pred_pos[1] > 400) particle.pred_pos[1] = 400;
     }
-    
+
     // 3. Integrate
     for (world.particles) |*particle| {
         const pos: Vec2 = particle.pos;
@@ -28,11 +28,9 @@ pub fn step(world: *world_module.World, dt: f32) void {
         if (particle.pred_pos[1] == 400) {
             if (particle.vel[1] > 0) {
                 particle.vel[1] *= -0.8;
-
             } else {
                 particle.vel[1] = 0;
             }
-
         } else {
             particle.vel = adjusted_vel;
         }
