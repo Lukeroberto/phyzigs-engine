@@ -6,6 +6,20 @@ pub const World = struct {
     particles: []Particle,
     //colliders: []Collider,
     //constraints: []Constraint,
+
+    pub fn calculateEnergy(self: *const World) f32 {
+        var total_energy: f32 = 0;
+        for (self.particles) |p| {
+            const mass = if (p.inv_mass > 0) 1.0 / p.inv_mass else 0;
+
+            const v_squared: f32 = p.vel[0] * p.vel[0] + p.vel[1] * p.vel[1];
+            const kinetic_energy: f32 = 0.5 * mass * v_squared;
+            const potential_energy: f32 = mass * self.g[1] * p.pos[1];
+            total_energy += kinetic_energy + potential_energy;
+        }
+
+        return total_energy;
+    }
 };
 
 pub const Particle = struct {
