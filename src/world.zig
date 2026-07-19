@@ -14,6 +14,8 @@ pub const World = struct {
 
             const v_squared: f32 = p.vel[0] * p.vel[0] + p.vel[1] * p.vel[1];
             const kinetic_energy: f32 = 0.5 * mass * v_squared;
+
+            // TODO: This needs to be with respect to the "ground" constraint
             const potential_energy: f32 = mass * self.g[1] * p.pos[1];
             total_energy += kinetic_energy + potential_energy;
         }
