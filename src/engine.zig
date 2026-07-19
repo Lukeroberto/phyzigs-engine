@@ -14,7 +14,7 @@ pub fn step(world: *world_module.World, dt: f32) void {
     }
 
     // 2. Resolve Constraints
-    // HARDCODED floor
+    // TODO: HARDCODED floor, this needs to be a constraint
     for (world.particles) |*particle| {
         if (particle.pred_pos[1] > 400) particle.pred_pos[1] = 400;
     }
